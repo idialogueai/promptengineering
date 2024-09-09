@@ -111,6 +111,6 @@ When functions should be invoked, they are indicated as function: function_name(
 * user: OK. Can I return this item for repair? Or fix it myself?
 * system: Yes. Your Axis-5000 is still under warranty. Let me generate a Return Merchandise Authorization (RMA) number for you.
 * function: `return_item(order_id: "123", item_id: "456")`
-* system: Your RMA number is 12345. You may use the following QR code to print your shipping label. <img src="https://rooms.i-dialogue.com?id=sdfkq34978sadfhj" /> 
+* system: Your RMA number is 12345. You may use the following QR code to print your shipping label. <a href="www.qr-code-generator.com/" border="0" style="cursor:default" rel="nofollow"><img src="https://chart.googleapis.com/chart?cht=qr&chl=http%3A%2F%2Fwww.idialogue.app&chs=180x180&choe=UTF-8&chld=L|2"></a>
 * user: Thanks!
 * system: You're welcome! Please let me know if I can be of any further assistance.
