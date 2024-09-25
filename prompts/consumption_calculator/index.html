@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Cloud Pricing Calculator</title>
+    <!-- Include Salesforce Lightning Design System CSS -->
+    <link rel="stylesheet" href="https://www.lightningdesignsystem.com/assets/styles/salesforce-lightning-design-system.css">
+    <style>
+        /* Custom styles */
+        .grey-background {
+            background-color: #f3f2f2;
+        }
+        .total-row {
+            font-weight: bold;
+        }
+        .slds-input--disabled {
+            background-color: #f3f2f2;
+        }
+        .cost-summary h2 {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="slds-grid slds-wrap slds-m-around_medium">
+        <!-- Cost Per 100K Credits Input -->
+        <div class="slds-col slds-size_1-of-1 slds-m-bottom_medium">
+            <div class="slds-form-element">
+                <label class="slds-form-element__label" for="costPer100KCredits">Cost Per 100K Credits</label>
+                <div class="slds-form-element__control">
+                    <input type="number" id="costPer100KCredits" value="1000" class="slds-input" oninput="calculate()">
+                </div>
+            </div>
+        </div>
+        <!-- Rate Card Table -->
+        <div class="slds-col slds-size_1-of-1">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-max-medium-table_stacked-horizontal">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th scope="col">
+                            <div class="slds-truncate" title="Category">Category</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Usage Type">Usage Type</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Unit">Unit</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Batch">Batch</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Streaming">Streaming</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Batch Consumption">Batch Consumption</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Streaming Consumption">Streaming Consumption</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Total Batch">Total Batch</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Total Streaming">Total Streaming</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="rateCardTableBody">
+                    <!-- Rows will be dynamically generated -->
+                </tbody>
+                <tfoot>
+                    <tr class="slds-text-title_bold total-row">
+                        <td colspan="5">
+                            <div class="slds-truncate" title="Summary">Summary</div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" id="totalBatchConsumption">0</div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" id="totalStreamingConsumption">0</div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" id="totalBatch">0</div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" id="totalStreaming">0</div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <!-- Total Costs -->
+        <div class="slds-col slds-size_1-of-1 slds-m-top_medium">
+            <div class="cost-summary">
+                <div class="slds-text-heading_large">Total Batch Costs: $<span id="totalBatchCost">0</span></div>
+                <div class="slds-text-heading_large">Total Streaming Costs: $<span id="totalStreamingCost">0</span></div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript Code -->
+    <script>
+        // Rate Card Data
+        const rateCardData = [
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Data Pipeline",
+                unit: "Per 1 Million Rows Processed",
+                batch: 2000,
+                streaming: 5000
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Data Transforms",
+                unit: "Per 1 Million Rows Processed",
+                batch: 400,
+                streaming: 5000
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Unstructured Data Processed",
+                unit: "Per 1 MegaByte (MB) Processed",
+                batch: 0,
+                streaming: 60
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Data Federation or Sharing Rows Accessed",
+                unit: "Per 1 Million Rows Accessed",
+                batch: 0,
+                streaming: 70
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Data Share Rows Shared (Data Out)",
+                unit: "Per 1 Million Rows Shared",
+                batch: 0,
+                streaming: 800
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "Profile Unification",
+                unit: "Per 1 Million Rows Processed",
+                batch: 0,
+                streaming: 100000
+            },
+            {
+                category: "Connect, Harmonize, and Unify",
+                usageType: "E2E Real-Time Processing Sub-second Real-Time Events",
+                unit: "Per 1 Million Events & API",
+                batch: 0,
+                streaming: 70000
+            },
+            {
+                category: "Analyze and Predict",
+                usageType: "Calculated Insights",
+                unit: "Per 1 Million Rows Processed",
+                batch: 15,
+                streaming: 800
+            },
+            {
+                category: "Analyze and Predict",
+                usageType: "Inferences",
+                unit: "Per 1 Million Inferences",
+                batch: 0,
+                streaming: 3500
+            },
+            {
+                category: "Act",
+                usageType: "Data Queries",
+                unit: "Per 1 Million Rows Processed",
+                batch: 2,
+                streaming: 0
+            },
+            {
+                category: "Act",
+                usageType: "Streaming Actions (including Lookups)",
+                unit: "Per 1 Million Rows Processed",
+                batch: 0,
+                streaming: 800
+            }
+        ];
+
+        // Generate Table Rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableBody = document.getElementById('rateCardTableBody');
+
+            rateCardData.forEach((item, index) => {
+                const row = document.createElement('tr');
+
+                // Category
+                const categoryCell = document.createElement('td');
+                categoryCell.textContent = item.category;
+                row.appendChild(categoryCell);
+
+                // Usage Type
+                const usageTypeCell = document.createElement('td');
+                usageTypeCell.textContent = item.usageType;
+                row.appendChild(usageTypeCell);
+
+                // Unit
+                const unitCell = document.createElement('td');
+                unitCell.textContent = item.unit;
+                row.appendChild(unitCell);
+
+                // Batch
+                const batchCell = document.createElement('td');
+                batchCell.textContent = item.batch.toLocaleString();
+                row.appendChild(batchCell);
+
+                // Streaming
+                const streamingCell = document.createElement('td');
+                streamingCell.textContent = item.streaming.toLocaleString();
+                row.appendChild(streamingCell);
+
+                // Batch Consumption
+                const batchConsumptionCell = document.createElement('td');
+                const batchInput = document.createElement('input');
+                batchInput.type = 'number';
+                batchInput.value = 0;
+                batchInput.min = 0;
+                batchInput.classList.add('slds-input');
+                batchInput.dataset.index = index;
+                batchInput.dataset.type = 'batch';
+                if (item.batch === 0) {
+                    batchInput.value = 0;
+                    batchInput.disabled = true;
+                    batchInput.classList.add('slds-input--disabled');
+                } else {
+                    batchInput.addEventListener('input', calculate);
+                }
+                batchConsumptionCell.appendChild(batchInput);
+                row.appendChild(batchConsumptionCell);
+
+                // Streaming Consumption
+                const streamingConsumptionCell = document.createElement('td');
+                const streamingInput = document.createElement('input');
+                streamingInput.type = 'number';
+                streamingInput.value = 0;
+                streamingInput.min = 0;
+                streamingInput.classList.add('slds-input');
+                streamingInput.dataset.index = index;
+                streamingInput.dataset.type = 'streaming';
+                if (item.streaming === 0) {
+                    streamingInput.value = 0;
+                    streamingInput.disabled = true;
+                    streamingInput.classList.add('slds-input--disabled');
+                } else {
+                    streamingInput.addEventListener('input', calculate);
+                }
+                streamingConsumptionCell.appendChild(streamingInput);
+                row.appendChild(streamingConsumptionCell);
+
+                // Total Batch
+                const totalBatchCell = document.createElement('td');
+                totalBatchCell.textContent = '0';
+                totalBatchCell.id = `totalBatch_${index}`;
+                row.appendChild(totalBatchCell);
+
+                // Total Streaming
+                const totalStreamingCell = document.createElement('td');
+                totalStreamingCell.textContent = '0';
+                totalStreamingCell.id = `totalStreaming_${index}`;
+                row.appendChild(totalStreamingCell);
+
+                tableBody.appendChild(row);
+            });
+
+            // Initial calculation
+            calculate();
+        });
+
+        // Calculate Totals
+        function calculate() {
+            let totalBatchConsumption = 0;
+            let totalStreamingConsumption = 0;
+            let totalBatch = 0;
+            let totalStreaming = 0;
+
+            const costPer100KCredits = parseFloat(document.getElementById('costPer100KCredits').value) || 0;
+
+            rateCardData.forEach((item, index) => {
+                // Batch Consumption
+                const batchInput = document.querySelector(`input[data-index="${index}"][data-type="batch"]`);
+                const batchConsumption = parseFloat(batchInput ? batchInput.value : 0) || 0;
+                const batchTotal = batchConsumption * item.batch;
+
+                // Update Total Batch per row
+                const totalBatchCell = document.getElementById(`totalBatch_${index}`);
+                totalBatchCell.textContent = batchTotal.toLocaleString();
+
+                // Streaming Consumption
+                const streamingInput = document.querySelector(`input[data-index="${index}"][data-type="streaming"]`);
+                const streamingConsumption = parseFloat(streamingInput ? streamingInput.value : 0) || 0;
+                const streamingTotal = streamingConsumption * item.streaming;
+
+                // Update Total Streaming per row
+                const totalStreamingCell = document.getElementById(`totalStreaming_${index}`);
+                totalStreamingCell.textContent = streamingTotal.toLocaleString();
+
+                totalBatchConsumption += batchConsumption;
+                totalStreamingConsumption += streamingConsumption;
+
+                totalBatch += batchTotal;
+                totalStreaming += streamingTotal;
+            });
+
+            // Update Summary Row
+            document.getElementById('totalBatchConsumption').textContent = totalBatchConsumption.toLocaleString();
+            document.getElementById('totalStreamingConsumption').textContent = totalStreamingConsumption.toLocaleString();
+            document.getElementById('totalBatch').textContent = totalBatch.toLocaleString();
+            document.getElementById('totalStreaming').textContent = totalStreaming.toLocaleString();
+
+            // Calculate Total Costs
+            const totalBatchCost = ((totalBatch / 100000) * costPer100KCredits).toFixed(2);
+            const totalStreamingCost = ((totalStreaming / 100000) * costPer100KCredits).toFixed(2);
+
+            document.getElementById('totalBatchCost').textContent = parseFloat(totalBatchCost).toLocaleString();
+            document.getElementById('totalStreamingCost').textContent = parseFloat(totalStreamingCost).toLocaleString();
+        }
+    </script>
+</body>
+</html>
